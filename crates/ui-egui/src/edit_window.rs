@@ -924,12 +924,13 @@ fn track_row(app: &mut SoundApp, ui: &mut Ui, id: TrackId, row: Rect, tl: Rect, 
     }
     lane_interaction(app, ui, track, lane, tl);
     if track.view == "playlists" {
-        playlist_lanes(app, ui, track, row, main_h, tl);
+        playlist_lanes(app, ui, track, row, main_h, tl, sorted);
     }
 }
 
 /// Alternate playlists as lanes under the main one; clicking a clip promotes it (comping).
-fn playlist_lanes(app: &mut SoundApp, ui: &mut Ui, track: &Track, row: Rect, main_h: f32, tl: Rect) {
+/// `sorted`: whether the active playlist's clips are in start order (from [`track_row`]).
+fn playlist_lanes(app: &mut SoundApp, ui: &mut Ui, track: &Track, row: Rect, main_h: f32, tl: Rect, sorted: bool) {
     let t = Tokens::current();
     let s = app.engine.session_arc();
     let mut y = row.min.y + main_h;
@@ -942,7 +943,6 @@ fn playlist_lanes(app: &mut SoundApp, ui: &mut Ui, track: &Track, row: Rect, mai
         ui.painter().rect_filled(lane, 0.0, t.playlist_lane);
         ui.painter().text(pos2(head.min.x + 4.0, head.center().y), Align2::LEFT_CENTER, &pl.name, regular(10.5), t.text_dim);
         let painter = ui.painter().with_clip_rect(lane.intersect(ui.clip_rect()));
-        let sorted = track.clips().is_sorted_by_key(|c| c.start);
         let view = Range::new(sample_at(&s, tl, tl.min.x), sample_at(&s, tl, tl.max.x));
         for c in pl.clips.iter().filter(|c| c.range().overlaps(&view)) {
             draw_clip(app, &painter, &s, track, sorted, c, tl, lane, false);
